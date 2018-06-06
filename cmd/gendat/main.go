@@ -1,31 +1,16 @@
-package main
+package gendat
 
 import (
+	"strings"
+	"strconv"
 	"os"
 	"io"
-	"strconv"
-	"strings"
 	"time"
-	"bufio"
-	"math/rand"
 	"math"
 	"encoding/binary"
+	"math/rand"
+	"bufio"
 	"flag"
-)
-
-package main
-
-import (
-"strings"
-"strconv"
-"os"
-"io"
-"time"
-"math"
-"encoding/binary"
-"math/rand"
-"bufio"
-"flag"
 )
 
 var (
@@ -71,7 +56,7 @@ func createMachineFolders(machineNum int) []string {
 		farm := strconv.Itoa(i / 255)
 		machine := strconv.Itoa(i % 255)
 		fileName := strings.Join([]string{"192.168", farm, machine}, ".")
-		path := strings.Join([]string{rootFolder, farm, fileName}, "/")
+		path := strings.Join([]string{rootFolder, "farms", farm, fileName}, "/")
 
 		if !checkFileIsExist(path) {
 			os.MkdirAll(path, os.ModePerm)
@@ -91,11 +76,15 @@ func generateDATTimer() {
 			t1.Reset(time.Second * 10)
 			logTime += 10
 			filename := createDatFile(logTime)
+			filePath := strings.Join([]string{datFolder, filename}, "/")
 
 			start := time.Now()
 			for _, folder := range machineFolders {
-				CopyFile(strings.Join([]string{folder, filename}, "/"), strings.Join([]string{datFolder, filename}, "/"))
+				CopyFile(strings.Join([]string{folder, filename}, "/"), filePath)
 			}
+
+			os.Remove(filePath)
+
 			elapsed := time.Since(start) / 1e6
 			println("Copy dat file to", machineNum, "folders, cost", elapsed, "ms!")
 		}
@@ -144,9 +133,9 @@ func Int64ToBytes(i int64) []byte {
 }
 
 func main() {
-	flag.StringVar(&rootFolder, "root", "", "根路径,用来保存模拟监控数据")
+	flag.StringVar(&rootFolder, "root", "", "根路径,用来保存模拟数据")
 	flag.IntVar(&machineNum, "machine", 10000, "机器总台数")
-	flag.IntVar(&metricNum, "metric", 40, "每条记录中指标总数")
+	flag.IntVar(&metricNum, "metric", 100, "每条记录中指标总数")
 
 	flag.Parse()
 
